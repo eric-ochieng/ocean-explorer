@@ -111,6 +111,57 @@ const achievementCatalog = [
   { id: "master", icon: "♛", name: "Master Explorer", description: "Earn at least 1,500 points" }
 ];
 
+const preschoolQuestions = [
+  [
+    ["What shines on top of the ocean?", ["The sun", "A shoe", "A bed"], 0, "The sun is bright.", "Sunlight helps ocean plants grow."],
+    ["Which animal has a shell and flippers?", ["Sea turtle", "Cat", "Chicken"], 0, "It swims and visits beaches.", "Sea turtles swim with strong flippers."],
+    ["What do fish use to swim?", ["Fins", "Hands", "Wheels"], 0, "Look at the sides of a fish.", "Fins help fish move and turn."],
+    ["Where does a dolphin come to breathe?", ["The surface", "The sand", "A tree"], 0, "It needs air.", "Dolphins breathe air at the surface."],
+    ["Which one lives in the ocean?", ["Jellyfish", "Lion", "Cow"], 0, "It has soft, wiggly arms.", "Jellyfish drift and swim in seawater."],
+    ["What color is clear ocean water often?", ["Blue", "Orange", "Brown"], 0, "Look at the moving picture.", "Water looks blue because of how light travels through it."]
+  ],
+  [
+    ["Which animal builds a coral reef?", ["Tiny coral", "Dog", "Duck"], 0, "Coral is alive.", "Tiny coral animals build reefs together."],
+    ["Where can a little reef fish hide?", ["In the coral", "In a cloud", "Under a chair"], 0, "Coral has many small spaces.", "Reefs are safe homes for young fish."],
+    ["Which fish helps clean other fish?", ["Cleaner fish", "Flying fish", "Toy fish"], 0, "Its name tells its job.", "Cleaner fish remove tiny pests."],
+    ["What should we do near coral?", ["Look gently", "Stand on it", "Break it"], 0, "Keep the reef safe.", "Gentle visitors help coral stay healthy."],
+    ["Is coral an animal?", ["Yes", "No", "A car"], 0, "Tiny polyps are animals.", "A coral colony is made of many little animals."],
+    ["What lives around a healthy reef?", ["Many fish", "Farm horses", "Snowmen"], 0, "Reefs are busy ocean homes.", "Healthy reefs support many kinds of life."]
+  ],
+  [
+    ["Is the Twilight Zone bright or dim?", ["Dim", "Very bright", "Dry"], 0, "Only a little light reaches it.", "The Twilight Zone has faint light."],
+    ["When do lanternfish swim up?", ["At night", "At lunch", "Never"], 0, "Darkness helps them hide.", "Lanternfish rise at night to eat."],
+    ["What helps a fish see in dim water?", ["Big eyes", "Big shoes", "A hat"], 0, "Eyes collect light.", "Large eyes help animals see faint light."],
+    ["Which light color vanishes quickly underwater?", ["Red", "Blue", "White"], 0, "Red does not travel far down.", "Red light is absorbed near the surface."],
+    ["Do animals move up and down here?", ["Yes", "No", "Only on land"], 0, "They follow food each day.", "Many animals change depth every day."],
+    ["What might a deep fish make?", ["A little glow", "A campfire", "A rainbow road"], 0, "Some animals make their own light.", "Ocean animals can glow with bioluminescence." ]
+  ],
+  [
+    ["Is there sunlight in the Midnight Zone?", ["No", "Lots", "Only at noon"], 0, "It is very deep.", "No sunlight reaches the Midnight Zone."],
+    ["What can an anglerfish use to find food?", ["A glowing lure", "A kite", "A flower"], 0, "It hangs near its mouth.", "An anglerfish uses light to attract prey."],
+    ["Is deep ocean pressure strong?", ["Yes", "No", "It is dry"], 0, "Lots of water presses down.", "Deep water creates enormous pressure."],
+    ["What falls down as food?", ["Marine snow", "Hot toast", "Leaves from trees"], 0, "Tiny food bits sink.", "Sinking ocean bits feed deep animals."],
+    ["Which body is good in deep water?", ["A soft body", "A balloon body", "A paper body"], 0, "Soft bodies handle pressure.", "Flexible animals cope with deep pressure."],
+    ["Can sound travel in dark water?", ["Yes", "No", "Only in sunshine"], 0, "Sound does not need light.", "Sound helps animals in darkness." ]
+  ],
+  [
+    ["What machine explores very deep water?", ["Submersible", "Bicycle", "Bus"], 0, "It has a strong ocean shell.", "Submersibles carry cameras into the deep."],
+    ["Are deep-sea vents hot or cold?", ["Hot", "Frozen", "Dry"], 0, "Warm water comes from the seafloor.", "Hydrothermal vents release hot water."],
+    ["What does an ROV have to help us see?", ["A camera", "A pillow", "A sail"], 0, "Scientists watch its video.", "ROVs show us the deep seafloor."],
+    ["Is food easy to find in the abyss?", ["No", "Yes", "There is cake"], 0, "Very little food reaches it.", "Abyss animals save energy because food is scarce."],
+    ["Where is the abyss?", ["On the deep seafloor", "In the sky", "On a playground"], 0, "It is far below the waves.", "The abyss is a vast deep-ocean habitat."],
+    ["Can tiny life grow near a vent?", ["Yes", "No", "Only in trees"], 0, "It uses vent chemicals.", "Microbes make food near deep-sea vents." ]
+  ],
+  [
+    ["Where should a plastic bottle go?", ["Recycling bin", "Ocean", "Beach sand"], 0, "Keep it out of the water.", "Bins stop litter reaching the sea."],
+    ["How should we watch tide-pool animals?", ["Gently", "By poking", "By taking them"], 0, "Let wild animals stay home.", "Gentle watching protects small animals."],
+    ["What can we pick up at a beach cleanup?", ["Litter", "Living coral", "Baby fish"], 0, "Choose rubbish people left.", "Beach cleanups keep trash out of the ocean."],
+    ["Which plant home protects baby fish?", ["Mangroves", "Apple trees", "Grass lawn"], 0, "Its roots grow by the sea.", "Mangrove roots shelter young fish."],
+    ["Should we use fewer throw-away plastics?", ["Yes", "No", "Only in the ocean"], 0, "Less trash is better.", "Using less plastic protects ocean animals."],
+    ["Who can help the ocean?", ["Everyone", "Nobody", "Only fish"], 0, "Small helpful choices matter.", "Everyone can be an Ocean Guardian." ]
+  ]
+].map(level => level.map(([prompt, options, correct, hint, fact]) => ({ prompt, options, correct, hint, fact })));
+
 const progressDefaults = () => ({
   unlockedLevel: 1,
   completedLevels: [],
@@ -123,13 +174,13 @@ const progressDefaults = () => ({
 });
 
 const defaultState = () => ({
-  learnerName: "",
-  learnerAge: null,
-  currentRoundId: null,
-  rounds: []
+  version: 2,
+  activeLearnerId: null,
+  learners: []
 });
 
 const progressFields = Object.keys(progressDefaults());
+const learnerFields = ["learnerName", "learnerAge", "currentRoundId", "rounds"];
 
 function shuffled(items) {
   const result = [...items];
@@ -143,6 +194,7 @@ function shuffled(items) {
 }
 
 function ageBand(age) {
+  if (age <= 5) return "preschool";
   if (age <= 9) return "junior";
   if (age >= 13) return "teen";
   return "explorer";
@@ -151,23 +203,33 @@ function ageBand(age) {
 function adaptQuestion(question, age, levelIndex, questionIndex) {
   const choices = shuffled(question.options.map((text, index) => ({ text, correct: index === question.correct })));
   const band = ageBand(age);
-  const prompt = band === "junior"
-    ? `Ocean clue: ${question.prompt}`
+  const leadIns = band === "preschool"
+    ? ["Look and choose!", "Ocean friend asks:", "Can you spot it?"]
+    : band === "junior"
+      ? ["Ocean clue:", "Dive challenge:", "Explorer question:"]
+      : band === "teen"
+        ? ["Research challenge:", "Science briefing:", "Field question:"]
+        : ["Ocean question:", "Expedition clue:", "Dive research:"];
+  const leadIn = leadIns[Math.floor(Math.random() * leadIns.length)];
+  const prompt = band === "preschool"
+    ? `${leadIn} ${question.prompt}`
+    : band === "junior"
+      ? `${leadIn} ${question.prompt}`
     : band === "teen"
-      ? `${question.prompt} Choose the most scientifically accurate answer.`
-      : question.prompt;
+      ? `${leadIn} ${question.prompt} Choose the most scientifically accurate answer.`
+      : `${leadIn} ${question.prompt}`;
   return {
     id: `level-${levelIndex + 1}-concept-${questionIndex + 1}`,
     prompt,
     options: choices.map(choice => choice.text),
     correct: choices.findIndex(choice => choice.correct),
-    hint: band === "junior" ? `Try this: ${question.hint}` : question.hint,
+    hint: band === "preschool" || band === "junior" ? `Try this: ${question.hint}` : question.hint,
     fact: band === "teen" ? `Research note: ${question.fact}` : question.fact
   };
 }
 
 function visualForAge(levelIndex, age) {
-  const sourceIndexes = ageBand(age) === "junior"
+  const sourceIndexes = ageBand(age) === "junior" || ageBand(age) === "preschool"
     ? [0, 1, 2, 3, 4, 0]
     : ageBand(age) === "teen"
       ? [0, 5, 2, 3, 4, 5]
@@ -175,9 +237,10 @@ function visualForAge(levelIndex, age) {
   const source = levels[sourceIndexes[levelIndex]];
   return {
     image: source.image,
-    imageAlt: ageBand(age) === "junior" ? `Cartoon scene for ${levels[levelIndex].title}` : source.imageAlt,
-    cartoonLevel: ageBand(age) === "junior" ? levelIndex : null,
-    fieldNote: `${levels[levelIndex].fieldNote} · Ages ${ageBand(age) === "junior" ? "6–9" : ageBand(age) === "teen" ? "13+" : "10–12"}`
+    imageAlt: ageBand(age) === "junior" || ageBand(age) === "preschool" ? `Moving 3D cartoon scene for ${levels[levelIndex].title}` : source.imageAlt,
+    cartoonLevel: ageBand(age) === "junior" || ageBand(age) === "preschool" ? levelIndex : null,
+    preschool: ageBand(age) === "preschool",
+    fieldNote: `${levels[levelIndex].fieldNote} · Ages ${ageBand(age) === "preschool" ? "3–5" : ageBand(age) === "junior" ? "6–9" : ageBand(age) === "teen" ? "13+" : "10–12"}`
   };
 }
 
@@ -189,12 +252,33 @@ function createRound(age, number) {
     age,
     ...progressDefaults(),
     startedAt: new Date().toISOString(),
-    questionSets: levels.map((level, levelIndex) => shuffled(level.questions.map((question, questionIndex) => adaptQuestion(question, age, levelIndex, questionIndex)))),
+    questionSets: levels.map((level, levelIndex) => {
+      const source = ageBand(age) === "preschool" ? preschoolQuestions[levelIndex] : level.questions;
+      return shuffled(source.map((question, questionIndex) => adaptQuestion(question, age, levelIndex, questionIndex)));
+    }),
     visuals: levels.map((level, levelIndex) => visualForAge(levelIndex, age))
   };
 }
 
 function attachProgressAccessors(savedState) {
+  learnerFields.forEach(field => {
+    Object.defineProperty(savedState, field, {
+      configurable: true,
+      get() {
+        const learner = getActiveLearner(savedState);
+        if (field === "learnerName") return learner?.name || "";
+        if (field === "learnerAge") return learner?.age || null;
+        return learner?.[field] ?? (field === "rounds" ? [] : null);
+      },
+      set(value) {
+        const learner = getActiveLearner(savedState);
+        if (!learner) return;
+        if (field === "learnerName") learner.name = value;
+        else if (field === "learnerAge") learner.age = value;
+        else learner[field] = value;
+      }
+    });
+  });
   progressFields.forEach(field => {
     Object.defineProperty(savedState, field, {
       configurable: true,
@@ -210,8 +294,35 @@ function attachProgressAccessors(savedState) {
   return savedState;
 }
 
+function getActiveLearner(savedState = state) {
+  return savedState.learners.find(learner => learner.id === savedState.activeLearnerId) || null;
+}
+
 function getCurrentRound(savedState = state) {
-  return savedState.rounds.find(round => round.id === savedState.currentRoundId) || savedState.rounds.at(-1) || null;
+  const learner = getActiveLearner(savedState);
+  return learner?.rounds.find(round => round.id === learner.currentRoundId) || learner?.rounds.at(-1) || null;
+}
+
+function createLearner(name, age) {
+  const learner = {
+    id: `learner-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name,
+    age,
+    createdAt: new Date().toISOString(),
+    currentRoundId: null,
+    rounds: []
+  };
+  state.learners.push(learner);
+  state.activeLearnerId = learner.id;
+  return learner;
+}
+
+function switchLearner(learnerId) {
+  if (!state.learners.some(learner => learner.id === learnerId)) return;
+  state.activeLearnerId = learnerId;
+  editingProfile = false;
+  saveState();
+  renderHome();
 }
 
 function getRoundLevel(index) {
@@ -237,6 +348,8 @@ let activeQuestion = 0;
 let wrongChoices = new Set();
 let teacherAuthenticated = false;
 let editingProfile = false;
+let creatingLearner = false;
+let choosingLearner = false;
 let toastTimer;
 
 const app = document.getElementById("app");
@@ -246,34 +359,50 @@ function loadState() {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!parsed || typeof parsed !== "object") return attachProgressAccessors(defaultState());
-    if (!Array.isArray(parsed.rounds)) {
-      const migrated = defaultState();
-      migrated.learnerName = parsed.learnerName || "";
-      migrated.learnerAge = Number(parsed.learnerAge) || null;
-      if (migrated.learnerName) {
-        const legacyRound = createRound(migrated.learnerAge || 10, 1);
-        Object.assign(legacyRound, progressDefaults(), Object.fromEntries(progressFields.map(field => [field, parsed[field] ?? progressDefaults()[field]])));
-        migrated.rounds.push(legacyRound);
-        migrated.currentRoundId = legacyRound.id;
-      }
-      return attachProgressAccessors(migrated);
-    }
-    const clean = { ...defaultState(), ...parsed };
-    clean.learnerAge = Number(clean.learnerAge) || null;
-    clean.rounds = clean.rounds.map((round, index) => ({
+    const normalizeRounds = (rounds, learnerAge) => (rounds || []).map((round, index) => ({
       ...progressDefaults(),
       ...round,
       number: round.number || index + 1,
-      age: Number(round.age) || clean.learnerAge || 10,
-      visuals: ageBand(Number(round.age) || clean.learnerAge || 10) === "junior"
-        ? levels.map((level, levelIndex) => visualForAge(levelIndex, Number(round.age) || clean.learnerAge || 10))
+      age: Number(round.age) || learnerAge || 10,
+      visuals: ageBand(Number(round.age) || learnerAge || 10) === "junior"
+        ? levels.map((level, levelIndex) => visualForAge(levelIndex, Number(round.age) || learnerAge || 10))
         : round.visuals,
       unlockedLevel: Math.min(6, Math.max(1, Number(round.unlockedLevel) || 1)),
       completedLevels: [...new Set(round.completedLevels || [])].filter(level => level >= 1 && level <= 6),
       achievements: [...new Set(round.achievements || [])].filter(id => achievementCatalog.some(item => item.id === id)),
       score: Math.max(0, Number(round.score) || 0)
     }));
-    if (!clean.rounds.some(round => round.id === clean.currentRoundId)) clean.currentRoundId = clean.rounds.at(-1)?.id || null;
+    if (Array.isArray(parsed.learners)) {
+      const clean = { ...defaultState(), ...parsed };
+      clean.learners = clean.learners.map((learner, index) => {
+        const age = Number(learner.age) || 10;
+        const rounds = normalizeRounds(learner.rounds, age);
+        return {
+          ...learner,
+          id: learner.id || `learner-imported-${index + 1}`,
+          name: learner.name || `Explorer ${index + 1}`,
+          age,
+          rounds,
+          currentRoundId: rounds.some(round => round.id === learner.currentRoundId) ? learner.currentRoundId : rounds.at(-1)?.id || null
+        };
+      });
+      if (!clean.learners.some(learner => learner.id === clean.activeLearnerId)) clean.activeLearnerId = clean.learners[0]?.id || null;
+      return attachProgressAccessors(clean);
+    }
+    const clean = defaultState();
+    const age = Number(parsed.learnerAge) || 10;
+    if (parsed.learnerName) {
+      let rounds;
+      if (Array.isArray(parsed.rounds)) rounds = normalizeRounds(parsed.rounds, age);
+      else {
+        const legacyRound = createRound(age, 1);
+        Object.assign(legacyRound, Object.fromEntries(progressFields.map(field => [field, parsed[field] ?? progressDefaults()[field]])));
+        rounds = [legacyRound];
+      }
+      const learner = { id: `learner-migrated-${Date.now()}`, name: parsed.learnerName, age, createdAt: parsed.startedAt || new Date().toISOString(), rounds, currentRoundId: parsed.currentRoundId || rounds.at(-1)?.id || null };
+      clean.learners.push(learner);
+      clean.activeLearnerId = learner.id;
+    }
     return attachProgressAccessors(clean);
   } catch {
     return attachProgressAccessors(defaultState());
@@ -281,6 +410,8 @@ function loadState() {
 }
 
 function saveState() {
+  const learner = getActiveLearner();
+  if (learner) learner.lastActiveAt = new Date().toISOString();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   scoreElement.textContent = state.score.toLocaleString();
 }
@@ -324,7 +455,7 @@ function renderFieldImage(level, compact = false) {
     ? renderCartoonScene(level.cartoonLevel, level.imageAlt)
     : `<img src="${level.image}" alt="${escapeHtml(level.imageAlt)}" loading="${compact ? "lazy" : "eager"}" decoding="async">`;
   return `
-    <figure class="field-image ${Number.isInteger(level.cartoonLevel) ? "cartoon-field" : ""} ${compact ? "field-image-compact" : ""}">
+    <figure class="field-image ${Number.isInteger(level.cartoonLevel) ? "cartoon-field" : ""} ${level.preschool ? "preschool-field" : ""} ${compact ? "field-image-compact" : ""}">
       ${media}
       <figcaption><span aria-hidden="true">✎</span> ${escapeHtml(level.fieldNote)}</figcaption>
     </figure>`;
@@ -339,8 +470,9 @@ function mount(markup, title) {
 }
 
 function renderHome() {
-  const returning = Boolean(state.learnerName && state.learnerAge && !editingProfile);
+  const returning = Boolean(state.learnerName && state.learnerAge && !editingProfile && !creatingLearner && !choosingLearner);
   const currentRound = getCurrentRound();
+  const showChooser = choosingLearner && state.learners.length > 0;
   mount(`
     <section class="screen home-grid">
       <div>
@@ -354,15 +486,28 @@ function renderHome() {
             <button class="primary-button" id="continue-button" type="button">${currentRound?.completedAt ? "Review latest session" : "Continue expedition"}</button>
             <button class="secondary-button" id="new-round-button" type="button">New question session</button>
             <button class="secondary-button" id="change-name-button" type="button">Edit learner profile</button>
+            <button class="secondary-button" id="exit-session-button" type="button">Exit learner session</button>
           </div>
+        ` : showChooser ? `
+          <section class="learner-chooser" aria-labelledby="learner-chooser-title">
+            <h2 id="learner-chooser-title">Who is exploring?</h2>
+            <p class="muted">Choose your name to continue, or add a new learner.</p>
+            <div class="learner-list">
+              ${state.learners.map(learner => `<button class="learner-choice" type="button" data-learner-id="${learner.id}"><span class="learner-avatar" aria-hidden="true">${escapeHtml(learner.name.charAt(0).toUpperCase())}</span><span><strong>${escapeHtml(learner.name)}</strong><small>Age ${learner.age} · ${learner.rounds.length} ${learner.rounds.length === 1 ? "session" : "sessions"}</small></span><span aria-hidden="true">›</span></button>`).join("")}
+            </div>
+            <button class="primary-button" id="chooser-new-learner" type="button">Add new learner</button>
+          </section>
         ` : `
           <form class="name-form" id="name-form">
             <label for="learner-name">Explorer name</label>
-            <input id="learner-name" name="learnerName" maxlength="32" autocomplete="name" required placeholder="Enter your name" value="${escapeHtml(state.learnerName)}">
+            <input id="learner-name" name="learnerName" maxlength="32" autocomplete="name" required placeholder="Enter your name" value="${creatingLearner ? "" : escapeHtml(state.learnerName)}">
             <label for="learner-age">Age</label>
-            <input id="learner-age" name="learnerAge" type="number" inputmode="numeric" min="6" max="18" required placeholder="6–18" value="${state.learnerAge || ""}">
-            <p class="muted small">Age helps Ocean Explorer choose the reading level and expedition artwork.</p>
-            <button class="primary-button" type="submit">${state.rounds.length ? "Save profile" : "Begin expedition"}</button>
+            <input id="learner-age" name="learnerAge" type="number" inputmode="numeric" min="3" max="18" required placeholder="3–18" value="${creatingLearner ? "" : state.learnerAge || ""}">
+            <p class="muted small">Ages 3–5 get easy questions with moving 3D pictures. Other explorers receive age-matched science challenges.</p>
+            <div class="button-row">
+              <button class="primary-button" type="submit">${creatingLearner ? "Add learner" : state.rounds.length ? "Save profile" : "Begin expedition"}</button>
+              ${state.learners.length ? `<button class="secondary-button" id="cancel-profile" type="button">Cancel</button>` : ""}
+            </div>
           </form>
         `}
       </div>
@@ -379,17 +524,46 @@ function renderHome() {
       editingProfile = true;
       renderHome();
     });
+    document.getElementById("exit-session-button").addEventListener("click", () => {
+      choosingLearner = true;
+      renderHome();
+    });
+  } else if (showChooser) {
+    document.querySelectorAll("[data-learner-id]").forEach(button => button.addEventListener("click", () => {
+      choosingLearner = false;
+      switchLearner(button.dataset.learnerId);
+    }));
+    document.getElementById("chooser-new-learner").addEventListener("click", () => {
+      choosingLearner = false;
+      creatingLearner = true;
+      renderHome();
+    });
   } else {
+    document.getElementById("cancel-profile")?.addEventListener("click", () => {
+      editingProfile = false;
+      creatingLearner = false;
+      choosingLearner = true;
+      renderHome();
+    });
     document.getElementById("name-form").addEventListener("submit", event => {
       event.preventDefault();
       const name = new FormData(event.currentTarget).get("learnerName").trim();
       const age = Number(new FormData(event.currentTarget).get("learnerAge"));
-      if (!name || age < 6 || age > 18) return;
-      const needsAgeMatchedRound = !getCurrentRound() || getCurrentRound().age !== age;
+      if (!name || !Number.isFinite(age) || age < 3 || age > 18) return;
+      if (creatingLearner || !getActiveLearner()) createLearner(name, age);
+      const currentRound = getCurrentRound();
+      const needsAgeMatchedRound = !currentRound || currentRound.age !== age;
       state.learnerName = name;
       state.learnerAge = age;
       editingProfile = false;
-      if (needsAgeMatchedRound) beginNewRound();
+      creatingLearner = false;
+      if (currentRound && currentRound.age !== age && !currentRound.answerLog.length && !currentRound.completedLevels.length) {
+        const refreshedRound = createRound(age, currentRound.number);
+        refreshedRound.id = currentRound.id;
+        Object.assign(currentRound, refreshedRound);
+        saveState();
+        renderMap();
+      } else if (needsAgeMatchedRound) beginNewRound();
       else {
         saveState();
         renderMap();
@@ -653,28 +827,44 @@ function renderCertificate() {
 
 function renderTeacher() {
   if (!teacherAuthenticated) return renderTeacherLogin();
+  const learner = getActiveLearner();
   const correctAnswers = state.answerLog.filter(entry => entry.correct).length;
   const accuracy = state.answerLog.length ? Math.round((correctAnswers / state.answerLog.length) * 100) : 0;
   const recent = state.answerLog.slice(-12).reverse();
+  const summaries = state.learners.map(item => {
+    const answerLog = item.rounds.flatMap(round => round.answerLog || []);
+    const correct = answerLog.filter(entry => entry.correct).length;
+    return {
+      ...item,
+      sessions: item.rounds.length,
+      levels: item.rounds.reduce((total, round) => total + round.completedLevels.length, 0),
+      score: item.rounds.reduce((total, round) => total + round.score, 0),
+      accuracy: answerLog.length ? Math.round((correct / answerLog.length) * 100) : 0
+    };
+  });
   mount(`
     <section class="screen">
       <div class="screen-heading">
-        <div><p class="eyebrow">Teacher Mode</p><h1>Learner dashboard</h1></div>
+        <div><p class="eyebrow">Teacher Mode</p><h1>Classroom dashboard</h1></div>
         <button class="secondary-button" id="exit-teacher" type="button">Exit Teacher Mode</button>
       </div>
       <div class="stats-grid">
-        <div class="stat-card"><span class="stat-value">${escapeHtml(state.learnerName || "—")}</span><span>Learner</span></div>
-        <div class="stat-card"><span class="stat-value">${state.rounds.length}</span><span>Saved sessions</span></div>
-        <div class="stat-card"><span class="stat-value">${accuracy}%</span><span>Answer accuracy</span></div>
-        <div class="stat-card"><span class="stat-value">${state.score.toLocaleString()}</span><span>Total points</span></div>
+        <div class="stat-card"><span class="stat-value">${state.learners.length}</span><span>Learners</span></div>
+        <div class="stat-card"><span class="stat-value">${summaries.reduce((total, item) => total + item.sessions, 0)}</span><span>Saved sessions</span></div>
+        <div class="stat-card"><span class="stat-value">${learner ? `${accuracy}%` : "—"}</span><span>Selected accuracy</span></div>
+        <div class="stat-card"><span class="stat-value">${learner ? state.score.toLocaleString() : "—"}</span><span>Selected score</span></div>
       </div>
+      <section class="panel classroom-roster">
+        <div class="section-heading"><div><p class="eyebrow">All learners on this device</p><h2>Class roster</h2></div></div>
+        ${summaries.length ? `<div class="data-table-wrap"><table><thead><tr><th>Learner</th><th>Age</th><th>Sessions</th><th>Levels</th><th>Accuracy</th><th>Points</th><th>Last active</th></tr></thead><tbody>${summaries.map(item => `<tr class="roster-row ${item.id === state.activeLearnerId ? "selected" : ""}" data-teacher-learner="${item.id}" tabindex="0"><td><strong>${escapeHtml(item.name)}</strong></td><td>${item.age}</td><td>${item.sessions}</td><td>${item.levels}</td><td>${item.accuracy}%</td><td>${item.score.toLocaleString()}</td><td>${formatDate(item.lastActiveAt || item.createdAt)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty-state muted">No learners have joined yet.</div>`}
+      </section>
       <div class="teacher-layout">
         <section class="panel">
-          <h2>Teacher controls</h2>
-          <p class="muted">Use these controls to prepare or restart this device.</p>
+          <h2>${escapeHtml(learner?.name || "Selected learner")} controls</h2>
+          <p class="muted">Choose a roster row to inspect and manage that learner.</p>
           <div class="button-row">
-            <button class="secondary-button" id="unlock-all" type="button">Unlock all levels</button>
-            <button class="danger-button" id="reset-progress" type="button">Reset learner progress</button>
+            <button class="secondary-button" id="unlock-all" type="button" ${learner?.rounds.length ? "" : "disabled"}>Unlock all levels</button>
+            <button class="danger-button" id="reset-progress" type="button" ${learner ? "" : "disabled"}>Reset selected learner</button>
           </div>
         </section>
         <section class="panel">
@@ -692,17 +882,30 @@ function renderTeacher() {
     </section>`, "Teacher Mode");
 
   document.getElementById("exit-teacher").addEventListener("click", () => { teacherAuthenticated = false; renderHome(); });
+  document.querySelectorAll("[data-teacher-learner]").forEach(row => {
+    const selectLearner = () => {
+      state.activeLearnerId = row.dataset.teacherLearner;
+      saveState();
+      renderTeacher();
+    };
+    row.addEventListener("click", selectLearner);
+    row.addEventListener("keydown", event => {
+      if (event.key === "Enter" || event.key === " ") selectLearner();
+    });
+  });
   document.getElementById("unlock-all").addEventListener("click", () => {
-    state.unlockedLevel = 6;
+    if (!learner?.rounds.length) return;
+    learner.rounds.forEach(round => { round.unlockedLevel = 6; });
     saveState();
-    showToast("All levels are now unlocked.");
+    showToast(`All levels are unlocked for ${learner.name}.`);
     renderTeacher();
   });
   document.getElementById("reset-progress").addEventListener("click", () => {
-    if (!window.confirm("Reset all learner progress on this device? This cannot be undone.")) return;
-    state = attachProgressAccessors(defaultState());
+    if (!learner || !window.confirm(`Reset all progress for ${learner.name}? This cannot be undone.`)) return;
+    learner.rounds = [];
+    learner.currentRoundId = null;
     saveState();
-    showToast("Learner progress has been reset.");
+    showToast(`${learner.name}'s progress has been reset.`);
     renderTeacher();
   });
 }
