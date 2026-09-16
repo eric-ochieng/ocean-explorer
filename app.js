@@ -348,8 +348,9 @@ let activeQuestion = 0;
 let wrongChoices = new Set();
 let teacherAuthenticated = false;
 let editingProfile = false;
-let creatingLearner = false;
 let choosingLearner = false;
+let teacherAddingLearner = false;
+let teacherFocusedLearnerId = null;
 let toastTimer;
 
 const app = document.getElementById("app");
@@ -470,7 +471,7 @@ function mount(markup, title) {
 }
 
 function renderHome() {
-  const returning = Boolean(state.learnerName && state.learnerAge && !editingProfile && !creatingLearner && !choosingLearner);
+  const returning = Boolean(state.learnerName && state.learnerAge && !editingProfile && !choosingLearner);
   const currentRound = getCurrentRound();
   const showChooser = choosingLearner && state.learners.length > 0;
   mount(`
@@ -491,24 +492,29 @@ function renderHome() {
         ` : showChooser ? `
           <section class="learner-chooser" aria-labelledby="learner-chooser-title">
             <h2 id="learner-chooser-title">Who is exploring?</h2>
-            <p class="muted">Choose your name to continue, or add a new learner.</p>
+            <p class="muted">Choose your name to continue your expedition.</p>
             <div class="learner-list">
               ${state.learners.map(learner => `<button class="learner-choice" type="button" data-learner-id="${learner.id}"><span class="learner-avatar" aria-hidden="true">${escapeHtml(learner.name.charAt(0).toUpperCase())}</span><span><strong>${escapeHtml(learner.name)}</strong><small>Age ${learner.age} · ${learner.rounds.length} ${learner.rounds.length === 1 ? "session" : "sessions"}</small></span><span aria-hidden="true">›</span></button>`).join("")}
             </div>
-            <button class="primary-button" id="chooser-new-learner" type="button">Add new learner</button>
           </section>
-        ` : `
+        ` : editingProfile ? `
           <form class="name-form" id="name-form">
             <label for="learner-name">Explorer name</label>
-            <input id="learner-name" name="learnerName" maxlength="32" autocomplete="name" required placeholder="Enter your name" value="${creatingLearner ? "" : escapeHtml(state.learnerName)}">
+            <input id="learner-name" name="learnerName" maxlength="32" autocomplete="name" required placeholder="Enter your name" value="${escapeHtml(state.learnerName)}">
             <label for="learner-age">Age</label>
-            <input id="learner-age" name="learnerAge" type="number" inputmode="numeric" min="3" max="18" required placeholder="3–18" value="${creatingLearner ? "" : state.learnerAge || ""}">
+            <input id="learner-age" name="learnerAge" type="number" inputmode="numeric" min="3" max="18" required placeholder="3–18" value="${state.learnerAge || ""}">
             <p class="muted small">Ages 3–5 get easy questions with moving 3D pictures. Other explorers receive age-matched science challenges.</p>
             <div class="button-row">
-              <button class="primary-button" type="submit">${creatingLearner ? "Add learner" : state.rounds.length ? "Save profile" : "Begin expedition"}</button>
-              ${state.learners.length ? `<button class="secondary-button" id="cancel-profile" type="button">Cancel</button>` : ""}
+              <button class="primary-button" type="submit">Save profile</button>
+              <button class="secondary-button" id="cancel-profile" type="button">Cancel</button>
             </div>
           </form>
+        ` : `
+          <section class="learner-chooser" aria-labelledby="learner-ready-title">
+            <h2 id="learner-ready-title">Ready to explore?</h2>
+            <p class="muted">Ask your teacher to add your profile in Teacher Mode.</p>
+            ${state.learners.length ? `<button class="primary-button" id="show-learner-chooser" type="button">Choose learner</button>` : ""}
+          </section>
         `}
       </div>
       <div class="hero-art">
@@ -533,16 +539,9 @@ function renderHome() {
       choosingLearner = false;
       switchLearner(button.dataset.learnerId);
     }));
-    document.getElementById("chooser-new-learner").addEventListener("click", () => {
-      choosingLearner = false;
-      creatingLearner = true;
-      renderHome();
-    });
-  } else {
+  } else if (editingProfile) {
     document.getElementById("cancel-profile")?.addEventListener("click", () => {
       editingProfile = false;
-      creatingLearner = false;
-      choosingLearner = true;
       renderHome();
     });
     document.getElementById("name-form").addEventListener("submit", event => {
@@ -550,13 +549,11 @@ function renderHome() {
       const name = new FormData(event.currentTarget).get("learnerName").trim();
       const age = Number(new FormData(event.currentTarget).get("learnerAge"));
       if (!name || !Number.isFinite(age) || age < 3 || age > 18) return;
-      if (creatingLearner || !getActiveLearner()) createLearner(name, age);
       const currentRound = getCurrentRound();
       const needsAgeMatchedRound = !currentRound || currentRound.age !== age;
       state.learnerName = name;
       state.learnerAge = age;
       editingProfile = false;
-      creatingLearner = false;
       if (currentRound && currentRound.age !== age && !currentRound.answerLog.length && !currentRound.completedLevels.length) {
         const refreshedRound = createRound(age, currentRound.number);
         refreshedRound.id = currentRound.id;
@@ -568,6 +565,11 @@ function renderHome() {
         saveState();
         renderMap();
       }
+    });
+  } else {
+    document.getElementById("show-learner-chooser")?.addEventListener("click", () => {
+      choosingLearner = true;
+      renderHome();
     });
   }
 }
@@ -827,7 +829,7 @@ function renderCertificate() {
 
 function renderTeacher() {
   if (!teacherAuthenticated) return renderTeacherLogin();
-  const learner = getActiveLearner();
+  const learner = state.learners.find(item => item.id === teacherFocusedLearnerId) || null;
   const correctAnswers = state.answerLog.filter(entry => entry.correct).length;
   const accuracy = state.answerLog.length ? Math.round((correctAnswers / state.answerLog.length) * 100) : 0;
   const recent = state.answerLog.slice(-12).reverse();
@@ -845,19 +847,28 @@ function renderTeacher() {
   mount(`
     <section class="screen">
       <div class="screen-heading">
-        <div><p class="eyebrow">Teacher Mode</p><h1>Classroom dashboard</h1></div>
+        <div><p class="eyebrow">Teacher Mode</p><h1>${learner ? escapeHtml(learner.name) : "Class roster"}</h1></div>
         <button class="secondary-button" id="exit-teacher" type="button">Exit Teacher Mode</button>
       </div>
-      <div class="stats-grid">
-        <div class="stat-card"><span class="stat-value">${state.learners.length}</span><span>Learners</span></div>
-        <div class="stat-card"><span class="stat-value">${summaries.reduce((total, item) => total + item.sessions, 0)}</span><span>Saved sessions</span></div>
-        <div class="stat-card"><span class="stat-value">${learner ? `${accuracy}%` : "—"}</span><span>Selected accuracy</span></div>
-        <div class="stat-card"><span class="stat-value">${learner ? state.score.toLocaleString() : "—"}</span><span>Selected score</span></div>
-      </div>
       <section class="panel classroom-roster">
-        <div class="section-heading"><div><p class="eyebrow">All learners on this device</p><h2>Class roster</h2></div></div>
-        ${summaries.length ? `<div class="data-table-wrap"><table><thead><tr><th>Learner</th><th>Age</th><th>Sessions</th><th>Levels</th><th>Accuracy</th><th>Points</th><th>Last active</th></tr></thead><tbody>${summaries.map(item => `<tr class="roster-row ${item.id === state.activeLearnerId ? "selected" : ""}" data-teacher-learner="${item.id}" tabindex="0"><td><strong>${escapeHtml(item.name)}</strong></td><td>${item.age}</td><td>${item.sessions}</td><td>${item.levels}</td><td>${item.accuracy}%</td><td>${item.score.toLocaleString()}</td><td>${formatDate(item.lastActiveAt || item.createdAt)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty-state muted">No learners have joined yet.</div>`}
+        <div class="section-heading"><div><p class="eyebrow">All learners on this device</p><h2>Students</h2></div><button class="primary-button" id="teacher-add-learner" type="button">Add learner</button></div>
+        ${teacherAddingLearner ? `<form class="name-form teacher-add-form" id="teacher-add-form">
+          <label for="teacher-learner-name">Explorer name</label>
+          <input id="teacher-learner-name" name="learnerName" maxlength="32" autocomplete="off" required placeholder="Enter learner name">
+          <label for="teacher-learner-age">Age</label>
+          <input id="teacher-learner-age" name="learnerAge" type="number" inputmode="numeric" min="3" max="18" required placeholder="3–18">
+          <div class="button-row"><button class="primary-button" type="submit">Create learner</button><button class="secondary-button" id="cancel-teacher-add" type="button">Cancel</button></div>
+        </form>` : ""}
+        ${summaries.length ? `<div class="data-table-wrap"><table><thead><tr><th>Learner</th><th>Age</th><th>Last active</th></tr></thead><tbody>${summaries.map(item => `<tr class="roster-row ${item.id === teacherFocusedLearnerId ? "selected" : ""}" data-teacher-learner="${item.id}" tabindex="0"><td><strong>${escapeHtml(item.name)}</strong></td><td>${item.age}</td><td>${formatDate(item.lastActiveAt || item.createdAt)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty-state muted">No learners have been added yet.</div>`}
       </section>
+      ${learner ? `
+      <div class="section-heading teacher-focus-heading"><div><p class="eyebrow">Individual learner</p><h2>${escapeHtml(learner.name)}'s details</h2></div><button class="secondary-button" id="back-to-roster" type="button">Back to class roster</button></div>
+      <div class="stats-grid">
+        <div class="stat-card"><span class="stat-value">${state.rounds.length}</span><span>Saved sessions</span></div>
+        <div class="stat-card"><span class="stat-value">${state.completedLevels.length}/6</span><span>Current levels</span></div>
+        <div class="stat-card"><span class="stat-value">${accuracy}%</span><span>Answer accuracy</span></div>
+        <div class="stat-card"><span class="stat-value">${state.score.toLocaleString()}</span><span>Current score</span></div>
+      </div>
       <div class="teacher-layout">
         <section class="panel">
           <h2>${escapeHtml(learner?.name || "Selected learner")} controls</h2>
@@ -879,12 +890,47 @@ function renderTeacher() {
         <h2>Recent answers</h2>
         ${recent.length ? `<div class="data-table-wrap" style="margin-top: 16px"><table><thead><tr><th>Level</th><th>Challenge</th><th>Response</th><th>Result</th></tr></thead><tbody>${recent.map(entry => `<tr><td>${entry.level}</td><td>${entry.question}</td><td>${escapeHtml(getRoundLevel(entry.level - 1).questions[entry.question - 1]?.options[entry.selected] || "Unknown")}</td><td>${entry.correct ? "Correct" : "Try again"}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty-state muted">No answers recorded yet.</div>`}
       </section>
+      ` : ""}
     </section>`, "Teacher Mode");
 
-  document.getElementById("exit-teacher").addEventListener("click", () => { teacherAuthenticated = false; renderHome(); });
+  document.getElementById("exit-teacher").addEventListener("click", () => {
+    teacherAuthenticated = false;
+    teacherAddingLearner = false;
+    teacherFocusedLearnerId = null;
+    renderHome();
+  });
+  document.getElementById("teacher-add-learner").addEventListener("click", () => {
+    teacherAddingLearner = true;
+    renderTeacher();
+  });
+  document.getElementById("cancel-teacher-add")?.addEventListener("click", () => {
+    teacherAddingLearner = false;
+    renderTeacher();
+  });
+  document.getElementById("teacher-add-form")?.addEventListener("submit", event => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const name = formData.get("learnerName").trim();
+    const age = Number(formData.get("learnerAge"));
+    if (!name || !Number.isFinite(age) || age < 3 || age > 18) return;
+    const newLearner = createLearner(name, age);
+    const firstRound = createRound(age, 1);
+    newLearner.rounds.push(firstRound);
+    newLearner.currentRoundId = firstRound.id;
+    teacherAddingLearner = false;
+    teacherFocusedLearnerId = null;
+    saveState();
+    showToast(`${name} is ready to explore.`);
+    renderTeacher();
+  });
+  document.getElementById("back-to-roster")?.addEventListener("click", () => {
+    teacherFocusedLearnerId = null;
+    renderTeacher();
+  });
   document.querySelectorAll("[data-teacher-learner]").forEach(row => {
     const selectLearner = () => {
       state.activeLearnerId = row.dataset.teacherLearner;
+      teacherFocusedLearnerId = row.dataset.teacherLearner;
       saveState();
       renderTeacher();
     };
@@ -893,14 +939,14 @@ function renderTeacher() {
       if (event.key === "Enter" || event.key === " ") selectLearner();
     });
   });
-  document.getElementById("unlock-all").addEventListener("click", () => {
+  document.getElementById("unlock-all")?.addEventListener("click", () => {
     if (!learner?.rounds.length) return;
     learner.rounds.forEach(round => { round.unlockedLevel = 6; });
     saveState();
     showToast(`All levels are unlocked for ${learner.name}.`);
     renderTeacher();
   });
-  document.getElementById("reset-progress").addEventListener("click", () => {
+  document.getElementById("reset-progress")?.addEventListener("click", () => {
     if (!learner || !window.confirm(`Reset all progress for ${learner.name}? This cannot be undone.`)) return;
     learner.rounds = [];
     learner.currentRoundId = null;
@@ -934,6 +980,7 @@ function renderTeacherLogin() {
       return;
     }
     teacherAuthenticated = true;
+    teacherFocusedLearnerId = null;
     renderTeacher();
   });
 }
