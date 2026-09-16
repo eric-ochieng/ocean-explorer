@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#b11f4b">
+  <title>Ocean Explorer</title>
+  <script>
+    (() => {
+      const param = new URLSearchParams(window.location.search).get("clawpilotTheme");
+      const theme =
+        param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ocean-backdrop" aria-hidden="true">
+    <svg viewBox="0 0 1200 360" preserveAspectRatio="none" role="presentation">
+      <path class="wave wave-one" d="M0 190 C180 100 340 280 540 180 C750 70 900 260 1200 130 L1200 360 L0 360 Z"/>
+      <path class="wave wave-two" d="M0 250 C220 150 410 330 650 220 C850 130 1040 290 1200 220 L1200 360 L0 360 Z"/>
+      <g class="fish" transform="translate(880 95)">
+        <path d="M0 18 C24 -5 60 -4 82 18 C60 40 24 41 0 18 Z"/>
+        <path d="M82 18 L112 0 L108 36 Z"/>
+        <circle cx="18" cy="14" r="3"/>
+      </g>
+      <g class="fish fish-small" transform="translate(185 185) scale(.65)">
+        <path d="M0 18 C24 -5 60 -4 82 18 C60 40 24 41 0 18 Z"/>
+        <path d="M82 18 L112 0 L108 36 Z"/>
+        <circle cx="18" cy="14" r="3"/>
+      </g>
+    </svg>
+  </div>
+
+  <header class="app-header">
+    <button class="brand-button" id="brand-button" type="button" aria-label="Ocean Explorer home">
+      <span class="brand-mark" aria-hidden="true">◉</span>
+      <span>Ocean Explorer</span>
+    </button>
+    <nav class="top-nav" aria-label="Main navigation">
+      <button class="icon-button" id="map-button" type="button" title="Expedition map" aria-label="Expedition map">⌖</button>
+      <button class="icon-button" id="progress-button" type="button" title="My progress" aria-label="My progress">▥</button>
+      <div class="score-chip" aria-label="Current score"><span aria-hidden="true">★</span> <span id="header-score">0</span></div>
+    </nav>
+  </header>
+
+  <main id="app" tabindex="-1"></main>
+
+  <footer>
+    <span>Ocean Explorer Learning Lab</span>
+    <button class="teacher-access-button" id="teacher-button" type="button">
+      <span class="teacher-access-icon" aria-hidden="true">T</span>
+      <span class="teacher-access-copy"><strong>Teacher Mode</strong><small>Open educator dashboard</small></span>
+      <span class="teacher-access-arrow" aria-hidden="true">›</span>
+    </button>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
