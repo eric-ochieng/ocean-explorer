@@ -349,6 +349,7 @@ let wrongChoices = new Set();
 let teacherAuthenticated = false;
 let editingProfile = false;
 let choosingLearner = false;
+let learnerRegistering = false;
 let teacherAddingLearner = false;
 let teacherFocusedLearnerId = null;
 let toastTimer;
@@ -410,9 +411,9 @@ function loadState() {
   }
 }
 
-function saveState() {
+function saveState(trackLearnerActivity = true) {
   const learner = getActiveLearner();
-  if (learner) learner.lastActiveAt = new Date().toISOString();
+  if (learner && trackLearnerActivity) learner.lastActiveAt = new Date().toISOString();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   scoreElement.textContent = state.score.toLocaleString();
 }
@@ -471,7 +472,7 @@ function mount(markup, title) {
 }
 
 function renderHome() {
-  const returning = Boolean(state.learnerName && state.learnerAge && !editingProfile && !choosingLearner);
+  const returning = Boolean(state.learnerName && state.learnerAge && !editingProfile && !choosingLearner && !learnerRegistering);
   const currentRound = getCurrentRound();
   const showChooser = choosingLearner && state.learners.length > 0;
   mount(`
@@ -496,23 +497,25 @@ function renderHome() {
             <div class="learner-list">
               ${state.learners.map(learner => `<button class="learner-choice" type="button" data-learner-id="${learner.id}"><span class="learner-avatar" aria-hidden="true">${escapeHtml(learner.name.charAt(0).toUpperCase())}</span><span><strong>${escapeHtml(learner.name)}</strong><small>Age ${learner.age} · ${learner.rounds.length} ${learner.rounds.length === 1 ? "session" : "sessions"}</small></span><span aria-hidden="true">›</span></button>`).join("")}
             </div>
+            <button class="primary-button" id="learner-register-button" type="button">I am a new learner</button>
           </section>
-        ` : editingProfile ? `
+        ` : editingProfile || learnerRegistering ? `
           <form class="name-form" id="name-form">
             <label for="learner-name">Explorer name</label>
-            <input id="learner-name" name="learnerName" maxlength="32" autocomplete="name" required placeholder="Enter your name" value="${escapeHtml(state.learnerName)}">
+            <input id="learner-name" name="learnerName" maxlength="32" autocomplete="name" required placeholder="Enter your name" value="${learnerRegistering ? "" : escapeHtml(state.learnerName)}">
             <label for="learner-age">Age</label>
-            <input id="learner-age" name="learnerAge" type="number" inputmode="numeric" min="3" max="18" required placeholder="3–18" value="${state.learnerAge || ""}">
+            <input id="learner-age" name="learnerAge" type="number" inputmode="numeric" min="3" max="18" required placeholder="3–18" value="${learnerRegistering ? "" : state.learnerAge || ""}">
             <p class="muted small">Ages 3–5 get easy questions with moving 3D pictures. Other explorers receive age-matched science challenges.</p>
             <div class="button-row">
-              <button class="primary-button" type="submit">Save profile</button>
+              <button class="primary-button" type="submit">${learnerRegistering ? "Create my profile" : "Save profile"}</button>
               <button class="secondary-button" id="cancel-profile" type="button">Cancel</button>
             </div>
           </form>
         ` : `
           <section class="learner-chooser" aria-labelledby="learner-ready-title">
             <h2 id="learner-ready-title">Ready to explore?</h2>
-            <p class="muted">Ask your teacher to add your profile in Teacher Mode.</p>
+            <p class="muted">Create your learner profile to begin your first expedition.</p>
+            <button class="primary-button" id="learner-register-button" type="button">Create learner profile</button>
             ${state.learners.length ? `<button class="primary-button" id="show-learner-chooser" type="button">Choose learner</button>` : ""}
           </section>
         `}
@@ -539,9 +542,16 @@ function renderHome() {
       choosingLearner = false;
       switchLearner(button.dataset.learnerId);
     }));
-  } else if (editingProfile) {
+    document.getElementById("learner-register-button").addEventListener("click", () => {
+      choosingLearner = false;
+      learnerRegistering = true;
+      renderHome();
+    });
+  } else if (editingProfile || learnerRegistering) {
     document.getElementById("cancel-profile")?.addEventListener("click", () => {
       editingProfile = false;
+      learnerRegistering = false;
+      choosingLearner = state.learners.length > 0;
       renderHome();
     });
     document.getElementById("name-form").addEventListener("submit", event => {
@@ -549,6 +559,12 @@ function renderHome() {
       const name = new FormData(event.currentTarget).get("learnerName").trim();
       const age = Number(new FormData(event.currentTarget).get("learnerAge"));
       if (!name || !Number.isFinite(age) || age < 3 || age > 18) return;
+      if (learnerRegistering) {
+        createLearner(name, age);
+        learnerRegistering = false;
+        beginNewRound();
+        return;
+      }
       const currentRound = getCurrentRound();
       const needsAgeMatchedRound = !currentRound || currentRound.age !== age;
       state.learnerName = name;
@@ -567,6 +583,10 @@ function renderHome() {
       }
     });
   } else {
+    document.getElementById("learner-register-button")?.addEventListener("click", () => {
+      learnerRegistering = true;
+      renderHome();
+    });
     document.getElementById("show-learner-chooser")?.addEventListener("click", () => {
       choosingLearner = true;
       renderHome();
@@ -931,7 +951,7 @@ function renderTeacher() {
     const selectLearner = () => {
       state.activeLearnerId = row.dataset.teacherLearner;
       teacherFocusedLearnerId = row.dataset.teacherLearner;
-      saveState();
+      saveState(false);
       renderTeacher();
     };
     row.addEventListener("click", selectLearner);
@@ -942,7 +962,7 @@ function renderTeacher() {
   document.getElementById("unlock-all")?.addEventListener("click", () => {
     if (!learner?.rounds.length) return;
     learner.rounds.forEach(round => { round.unlockedLevel = 6; });
-    saveState();
+    saveState(false);
     showToast(`All levels are unlocked for ${learner.name}.`);
     renderTeacher();
   });
@@ -950,7 +970,7 @@ function renderTeacher() {
     if (!learner || !window.confirm(`Reset all progress for ${learner.name}? This cannot be undone.`)) return;
     learner.rounds = [];
     learner.currentRoundId = null;
-    saveState();
+    saveState(false);
     showToast(`${learner.name}'s progress has been reset.`);
     renderTeacher();
   });
